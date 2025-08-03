@@ -64,4 +64,6 @@ def show():
     except requests.exceptions.RequestException as e:
          return jsonify({'error': str(e)}), 500
 
-    return jsonify(data)
+    return jsonify({
+        kanji: data
+    })
