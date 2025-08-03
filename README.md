@@ -1,21 +1,21 @@
-## Python Weather App
-This is a self-directed project. 
+## Python JLPT (Japanese language) app
+This is a self-directed project and is my second app built using Flask. 
 
 ## Goals
-For this project, I wanted to try out some Python by using Flask and connecting it to React for the front end. So far, I have had experience building full-stack applications using Rails and so wanted to try building the front and back end separately. 
+For this project, I wanted to consolidate my learning of Python and Flask, and again connect it to a React frontend. Although I started the React frontend a while ago, I am a lot more confident in using Flask and React and so wanted to separate the concerns better by creating separate apps.
 
 ## Tech Stack
 - Flask (Python)
-- Open Weather API
+- kanjiapi.dev (free, no key required)
 - Postman (to test requests)
 
 ## Process
 I first set up my Flask project following the documentation: 
-
-``mkdir python-weather-app`
-`cd python-weather-app`
-`python3 -m venv .venv``
-
+```
+mkdir python-weather-app
+cd python-weather-app
+python3 -m venv .venv
+```
 Activate the virtual environment:
 
 `. .venv/bin/activate`
