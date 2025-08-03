@@ -12,29 +12,29 @@ For this project, I wanted to consolidate my learning of Python and Flask, and a
 ## Process
 I first set up my Flask project following the documentation: 
 ```
-mkdir python-weather-app
-cd python-weather-app
+mkdir JLPTrainer-python
+cd JLPTrainer-python
 python3 -m venv .venv
 ```
 Activate the virtual environment:
-
-`. .venv/bin/activate`
-
+```
+. .venv/bin/activate
+```
 Install Flask
-
-`pip install Flask`
-
+```
+pip install Flask
+```
 Create a new file in the project
+```
+touch app.py
+```
 
-`touch app.py`
-
-I ensured any API keys would be stored safely by creating a .env file and installing 
-
-`pip install python-dotenv`
-
-This allowed me to safely fetch the API key from my .env file. 
-
-When first connecting it to my react frontend, I came across an error regarding CORS. I discovered that CORS is a browser security feature, and without the CORS headers it would be impossible for the react frontend to make requests. 
+I installed everything I would need to make requests to an API:
+```
+pip install flask_cors
+pip install requests
+pip install flask_caching
+```
 
 ## Reflections
 I've really enjoyed using Python and Flask. It's very intuitive and the syntax is similar to Ruby. Having a foundation in Rails helped, as I was able to get to grips with the routing system quickly. As this was relatively simple to set up, I could really focus on things like the security of the app.
