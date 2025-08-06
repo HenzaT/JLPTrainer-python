@@ -18,16 +18,16 @@ cache = Cache(app)
 @app.route('/', methods=['GET'])
 def welcome():
     return "Welcome to the JLPTrainer backend." \
-            "To find the kanji characters for each JLPT level, use the url /api/index?level=jlpt-NUMBER" \
+            "To find the kanji characters for each JLPT level, use the url /api/index?level=JLPT-1" \
             "To see all JLPT kanji characters, use the url /api/all-kanji" \
             "To see a specific kanji, use the url /api/show?kanji=CHARACTER"
 
 # Index
 def level_cache_key():
-    data = request.get_json(silent=True) or {}
-    return f"level:{data.get('level', '').strip().lower()}"
+    level = request.args.get('level', '').strip().lower()
+    return f"level:{level}"
 
-@app.route('/api/index', methods=['GET', 'POST'])
+@app.route('/api/index', methods=['GET'])
 @cache.cached(timeout=50, key_prefix=level_cache_key)
 def index():
     if request.method == 'GET':
@@ -78,17 +78,14 @@ def all_kanji():
 
 # Show
 def kanji_cache_key():
-    data = request.get_json(silent=True) or {}
-    return f"kanji:{data.get('kanji', '').strip().lower()}"
+    kanji = request.args.get('kanji', '').strip().lower()
+    return f"kanji:{kanji}"
 
-@app.route('/api/show', methods=['GET', 'POST'])
+@app.route('/api/show', methods=['GET'])
 @cache.cached(timeout=50, key_prefix=kanji_cache_key)
 def show():
     if request.method == 'GET':
         kanji = request.args.get('kanji')
-    elif request.method == 'POST':
-        data = request.get_json()
-        kanji = data.get('kanji') if data else None
 
     kanji_url = f'https://kanjiapi.dev/v1/kanji/{kanji}'
     try:
@@ -98,6 +95,4 @@ def show():
     except requests.exceptions.RequestException as e:
          return jsonify({'error': str(e)}), 500
 
-    return jsonify({
-        kanji: data
-    })
+    return jsonify(data)
