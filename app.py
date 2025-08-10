@@ -1,26 +1,59 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, session, make_response, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 from flask_caching import Cache
+# password hashing
+from flask_bcrypt import Bcrypt
+# migrations
+from flask_migrate import Migrate
+# session management
+from flask_login import (
+    UserMixin,
+    login_user,
+    LoginManager,
+    current_user,
+    logout_user,
+    login_required
+)
 import requests
+import os
+load_dotenv()
+
+# create instance of LoginManager so we can use elsewhere
+login_manager = LoginManager()
+login_manager.session_protection = "strong"
+login_manager.login_view = "login"
+login_manager.login_message_category = "info"
+
+from models import db, User
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.json.compact = False
+
+CORS(app)
+
+migrate = Migrate(app, db)
+
+db.init_app(app)
+
+bcrypt = Bcrypt(app)
 
 config = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300
 }
-app = Flask(__name__)
 
-CORS(app)
 app.config.from_mapping(config)
 cache = Cache(app)
 
 # Root, welcome
 @app.route('/', methods=['GET'])
 def welcome():
-    return "Welcome to the JLPTrainer backend." \
-            "To find the kanji characters for each JLPT level, use the url /api/index?level=JLPT-1" \
-            "To see all JLPT kanji characters, use the url /api/all-kanji" \
-            "To see a specific kanji, use the url /api/show?kanji=CHARACTER"
+    return render_template('welcome.html')
 
 # Index
 def level_cache_key():
@@ -96,3 +129,14 @@ def show():
          return jsonify({'error': str(e)}), 500
 
     return jsonify(data)
+
+@app.route('/api/users', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def users():
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PUT':
+        pass
+    elif request.method == 'DELETE':
+        pass
