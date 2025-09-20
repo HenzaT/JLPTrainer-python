@@ -1,19 +1,20 @@
-from flask import Flask, render_template, request, session, make_response, jsonify
+from flask import Flask, render_template, request, session, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_caching import Cache
+from flask_session import Session
 # password hashing
 from flask_bcrypt import Bcrypt
 # migrations
 from flask_migrate import Migrate
 # session management
 from flask_login import (
-    UserMixin,
-    login_user,
+    # UserMixin,
+    # login_user,
     LoginManager,
-    current_user,
-    logout_user,
-    login_required
+    # current_user,
+    # logout_user,
+    # login_required
 )
 import requests
 import os
@@ -28,18 +29,15 @@ login_manager.login_message_category = "info"
 from models import db, User
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.json.compact = False
-
-CORS(app)
+CORS(app, supports_credentials=True)
+bcrypt = Bcrypt(app)
+# server_session = session(app)
 
 migrate = Migrate(app, db)
 
-db.init_app(app)
-
-bcrypt = Bcrypt(app)
+# db.init_app(app)
+# with app.app_context():
+#     db.create_all()
 
 config = {
     "DEBUG": True,          # some Flask specific configs
@@ -47,8 +45,74 @@ config = {
     "CACHE_DEFAULT_TIMEOUT": 300
 }
 
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.json.compact = False
+
 app.config.from_mapping(config)
 cache = Cache(app)
+
+# register a user
+@app.route('/register', methods=['POST'])
+def register():
+    # get inputs of email and password
+    email = request.json['email']
+    password = request.json['password']
+    # check if user already exists
+    user_exists = User.query.filter_by(email=email).first() is not None
+    # if user exists, the inputted email and password wont be added to db
+    if user_exists:
+        return jsonify({'error': 'User already exists'}), 409
+    # hash the password for security
+    hashed_password = bcrypt.generate_password_hash(password)
+    # add and commit the new user
+    new_user = User(email=email, password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    session['user_id'] = new_user.id
+    return jsonify({
+        'id': new_user.id,
+        'email': new_user.email
+    })
+
+# login
+@app.route('/login', methods=['POST'])
+def login_user():
+    email = request.json['email']
+    password = request.json['password']
+
+    user = User.query.filter_by(email=email).first()
+
+    if user is None:
+        return jsonify({'error': 'Unauthorized'}), 401
+    if not bcrypt.check_password_hash(user.password, password):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    session['user_id'] = user.id
+    return jsonify({
+        'id': user.id,
+        'email': user.email
+    })
+
+@app.route("/logout", methods=["POST"])
+def logout_user():
+    session.pop("user_id")
+    return "200"
+
+@app.route("/@me")
+def get_current_user():
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = User.query.filter_by(id=user_id).first()
+    return jsonify({
+        "id": user.id,
+        "email": user.email
+    })
 
 # Root, welcome
 @app.route('/', methods=['GET'])
