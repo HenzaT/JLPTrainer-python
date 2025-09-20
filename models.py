@@ -2,7 +2,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from sqlalchemy.orm import validates
-from sqlalchemy.ext.associationproxy import association_proxy
 
 metadata = MetaData(naming_convention={
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -18,6 +17,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=True)
+    email = db.column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
 
@@ -25,6 +25,7 @@ class User(db.Model):
     def validate_name(self, key, value):
         if not len(value) >= 2:
             raise ValueError(f'{key} must be at least 2 characters long')
+        return value
 
     @validates('email')
     def validate_email(self, key, value):
